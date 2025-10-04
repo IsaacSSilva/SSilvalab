@@ -23,7 +23,7 @@ export default function DatalistInput({
   className = "",
 }: DatalistInputProps) {
   const baseUrl = `github.com/${username}`;
-  const { repos, loading, error } = useGitHubRepos(username, true);
+  const { repos, loading, error } = useGitHubRepos(username);
   
   const [inputValue, setInputValue] = useState<string>(baseUrl);
   const [isOpen, setIsOpen] = useState<boolean>(false);
