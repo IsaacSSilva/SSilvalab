@@ -1,5 +1,6 @@
 "use client";
 
+import { Link, LoaderCircle } from "lucide-react";
 import {
   type ChangeEvent,
   type KeyboardEvent,
@@ -8,32 +9,22 @@ import {
   useRef,
   useState,
 } from "react";
+import { useGitHubRepos } from "@/hooks/useGitHubRepos";
 
 interface DatalistInputProps {
   username?: string;
-  repositories?: string[];
   onValueChange?: (value: string) => void;
   className?: string;
 }
 
 export default function DatalistInput({
   username = "IsaacSSilva",
-  repositories = [
-    "Components",
-    "Portfolio",
-    "API-Project",
-    "React-Utils",
-    "TypeScript-Helpers",
-    "NextJS-Starter",
-    "UI-Library",
-    "Auth-System",
-    "Database-Manager",
-    "API-Gateway"
-  ],
   onValueChange,
   className = "",
 }: DatalistInputProps) {
   const baseUrl = `github.com/${username}`;
+  const { repos, loading, error } = useGitHubRepos(username, true);
+  
   const [inputValue, setInputValue] = useState<string>(baseUrl);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [filteredRepos, setFilteredRepos] = useState<string[]>([]);
@@ -41,33 +32,31 @@ export default function DatalistInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Memoiza o array de repositories para evitar recriação a cada render
+  const repositories = repos.map(repo => repo.name);
+
   useEffect(() => {
     // Verifica se tem "/" após o baseUrl
     if (inputValue.startsWith(baseUrl + "/")) {
-      const repoQuery = inputValue.substring(baseUrl.length + 1); // Pega o texto após a "/"
+      const repoQuery = inputValue.substring(baseUrl.length + 1);
       
       if (repoQuery === "") {
-        // Se digitou apenas "/", mostra todos os repos
         setFilteredRepos(repositories);
         setIsOpen(true);
       } else {
-        // Filtra repos que começam com o que foi digitado
         const filtered = repositories.filter((repo) =>
           repo.toLowerCase().startsWith(repoQuery.toLowerCase())
         );
         setFilteredRepos(filtered);
         
-        // Só abre se houver opções filtradas
-        // Fecha se completou exatamente um repo e não há outros com o mesmo prefixo
         const exactMatch = filtered.length === 1 && filtered[0].toLowerCase() === repoQuery.toLowerCase();
         setIsOpen(filtered.length > 0 && !exactMatch);
       }
     } else {
-      // Se não tem "/", não mostra nada
       setFilteredRepos([]);
       setIsOpen(false);
     }
-  }, [inputValue, baseUrl, repositories]);
+  }, [inputValue, baseUrl, repos]); // Usa 'repos' ao invés de 'repositories'
 
   // Fechar dropdown ao clicar fora
   useEffect(() => {
@@ -91,11 +80,11 @@ export default function DatalistInput({
     const handleGlobalKeyDown = (e: globalThis.KeyboardEvent) => {
       if (e.ctrlKey && e.key === '/') {
         e.preventDefault();
+        const repoNames = repos.map(repo => repo.name);
         setInputValue(baseUrl + "/");
-        setFilteredRepos(repositories);
+        setFilteredRepos(repoNames);
         setIsOpen(true);
         inputRef.current?.focus();
-        // Coloca o cursor no final
         setTimeout(() => {
           if (inputRef.current) {
             inputRef.current.selectionStart = inputRef.current.value.length;
@@ -107,12 +96,11 @@ export default function DatalistInput({
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [baseUrl, repositories]);
+  }, [baseUrl, repos]); // Usa 'repos' ao invés de 'repositories'
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     
-    // Impede que apague o baseUrl
     if (value.startsWith(baseUrl)) {
       setInputValue(value);
       setHighlightedIndex(-1);
@@ -133,7 +121,6 @@ export default function DatalistInput({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    // Impede backspace de apagar além do baseUrl
     if (e.key === "Backspace" && inputValue === baseUrl) {
       e.preventDefault();
       return;
@@ -167,37 +154,107 @@ export default function DatalistInput({
     }
   };
 
+  const handleRedirect = () => {
+    const url = inputValue.startsWith('http') 
+      ? inputValue 
+      : `https://${inputValue}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  // Estado de loading
+  if (loading) {
+    return (
+      <div className={`w-full max-w-lg ${className}`}>
+        <div className="relative flex ">
+          <div
+            className="px-5 py-1.5 border border-r-0 
+            pr-10 rounded-s-md transition-all font-mono w-full text-zinc-50/25 flex 
+            items-center border-zinc-50/15 bg-zinc-900 rounded-md"
+          >
+            Carregando repositórios...
+          </div>
+          <div className="min-h-full w-[1px] border border-dashed border-zinc-50/15"/>
+          <button 
+            type="button"
+            disabled
+            className="border border-l-0 border-zinc-50/15 bg-zinc-900 text-zinc-50
+            px-5 transition-all font-mono rounded-e-md cursor-not-allowed"
+          >
+            <LoaderCircle className="size-4 text-zinc-50/60 animate-spin"/>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado de erro
+  if (error) {
+    return (
+      <div className={`w-full max-w-md ${className}`}>
+        <div className="relative flex">
+          <div
+            className="px-5 py-1.5 border border-r-0 border-red-500/30 bg-zinc-900
+            pr-10 rounded-s-md transition-all font-mono w-full text-red-400 flex items-center text-sm"
+          >
+            {error}
+          </div>
+          <div className="min-h-full w-[1px] border border-dashed border-red-500/30"/>
+          <button 
+            type="button"
+            disabled
+            className="border border-l-0 border-red-500/30 bg-zinc-900 text-red-400
+            px-5 transition-all font-mono rounded-e-md cursor-not-allowed"
+          >
+            <Link className="size-4 text-red-400/60"/>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado normal com dados carregados
   return (
     <div className={`w-full max-w-md ${className}`}>
       <div className="relative">
         <label htmlFor="repo-input" className="sr-only">
           Selecione um repositório
         </label>
-        <div className="relative">
+        <div className="relative flex w-lg">
           <input
             ref={inputRef}
             id="repo-input"
             type="text"
-            spellcheck="false" 
-            autocorrect="off" 
-            autocomplete="off"
+            spellCheck="false" 
+            autoCorrect="off" 
+            autoComplete="off"
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            className="px-5 py-1.5 border border-zinc-50/15 bg-zinc-900 text-zinc-50
-            pr-10 focus:border-zinc-50/35 rounded-sm focus:outline-none focus:ring-0 
-            transition-all font-mono cursor-pointer w-xl"
+            className="px-5 py-1.5 border border-r-0 border-zinc-50/15 bg-zinc-900 text-zinc-50
+            pr-10 focus:border-zinc-50/35 rounded-s-md focus:outline-none focus:ring-0 
+            transition-all font-mono cursor-pointer w-full"
             placeholder={baseUrl}
-            autoComplete="off"
           />
+          <div className="min-h-full w-[1px] border border-dashed border-zinc-50/15"/>
+          <button 
+            type="button"
+            onClick={handleRedirect}
+            className="border border-l-0 border-zinc-50/15 bg-zinc-900 text-zinc-50
+            px-5 focus:border-zinc-50/35 focus:outline-none focus:ring-0
+            transition-all font-mono cursor-pointer rounded-e-md group duration-200"
+          >
+            <Link className="size-4 text-zinc-50/60 group-hover:text-emerald-500
+            transition-all duration-200"/>
+          </button>
         </div>
 
         {/* Dropdown customizado */}
         {isOpen && filteredRepos.length > 0 && (
           <div
             ref={dropdownRef}
-            className="absolute z-10 w-full mt-2 bg-zinc-800 border-2 border-zinc-700 rounded-lg shadow-lg max-h-60 overflow-y-auto
-            scrollbar-thin scrollbar-track-zinc-800 scrollbar-thumb-zinc-600 hover:scrollbar-thumb-zinc-500"
+            className="absolute z-10 w-full mt-2 border-[1.5px] border-zinc-50/15 bg-zinc-900 rounded-md 
+            shadow-lg max-h-60 overflow-y-auto scrollbar-thin scrollbar-track-zinc-800 scrollbar-thumb-zinc-600 
+            hover:scrollbar-thumb-zinc-500"
             style={{
               scrollbarWidth: 'thin',
               scrollbarColor: '#52525b #27272a'
@@ -207,9 +264,10 @@ export default function DatalistInput({
               <div
                 key={index}
                 onClick={() => handleRepoClick(repo)}
-                className={`px-4 py-3 cursor-pointer transition-colors font-mono ${
+                className={`px-4 py-3 cursor-pointer transition-colors font-mono 
+                  ${
                   index === highlightedIndex
-                    ? "bg-emerald-600 text-white"
+                    ? "bg-rose-600 text-white"
                     : "hover:bg-zinc-700 text-zinc-100"
                 } ${index === 0 ? "rounded-t-lg" : ""} ${
                   index === filteredRepos.length - 1 ? "rounded-b-lg" : ""
@@ -242,7 +300,9 @@ export default function DatalistInput({
         {isOpen && filteredRepos.length === 0 && inputValue.includes("/") && (
           <div
             ref={dropdownRef}
-            className="absolute z-10 w-full mt-2 bg-zinc-800 border-2 border-zinc-700 rounded-lg shadow-lg p-4 text-center text-zinc-400 font-mono"
+            className="absolute z-10 w-full mt-2 border-[1.5px]
+            border-zinc-50/15 bg-zinc-900 rounded-md shadow-lg py-1.5 text-center 
+            text-zinc-600 font-mono"
           >
             Nenhum repositório encontrado
           </div>
