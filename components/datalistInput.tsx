@@ -173,7 +173,7 @@ export default function DatalistInput({
           >
             Carregando repositórios...
           </div>
-          <div className="min-h-full w-[1px] border border-dashed border-zinc-50/15"/>
+          <div className="min-h-full w-[1px] border border-dashed border-zinc-50/15 "/>
           <button 
             type="button"
             disabled
@@ -214,12 +214,12 @@ export default function DatalistInput({
 
   // Estado normal com dados carregados
   return (
-    <div className={`w-full max-w-md ${className}`}>
+    <div className={`max-w-md md:w-full w-xs ${className}`}>
       <div className="relative">
         <label htmlFor="repo-input" className="sr-only">
           Selecione um repositório
         </label>
-        <div className="relative flex w-lg">
+        <div className="relative flex md:w-lg w-xs sm:text-base text-xs group">
           <input
             ref={inputRef}
             id="repo-input"
@@ -230,20 +230,21 @@ export default function DatalistInput({
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            className="px-5 py-1.5 border border-r-0 border-zinc-50/15 bg-zinc-900 text-zinc-50
-            pr-10 focus:border-zinc-50/35 rounded-s-md focus:outline-none focus:ring-0 
+            className="px-5 py-1.5 border border-r-0 border-zinc-500 dark:border-zinc-50/15 drop-shadow-2xl drop-shadow-zinc-950/20 bg-zinc-900 text-zinc-50
+            pr-10 dark:group-focus-within:border-zinc-50/35 group-focus-within:border-zinc-950 rounded-s-md focus:outline-none focus:ring-0 
             transition-all font-mono cursor-pointer w-full"
             placeholder={baseUrl}
           />
-          <div className="min-h-full w-[1px] border border-dashed border-zinc-50/15"/>
+          <div className="min-h-full w-[1px] border border-dashed dark:border-zinc-50/15
+          border-zinc-950 dark:bg-transparent bg-zinc-950/20 dark:group-focus-within:border-zinc-50/35 group-focus-within:border-zinc-950"/>
           <button 
             type="button"
             onClick={handleRedirect}
-            className="border border-l-0 border-zinc-50/15 bg-zinc-900 text-zinc-50
-            px-5 focus:border-zinc-50/35 focus:outline-none focus:ring-0
+            className="border border-l-0 border-zinc-500 dark:border-zinc-50/15 drop-shadow-2xl drop-shadow-zinc-950/20 bg-zinc-900 text-zinc-50
+            px-5 dark:group-focus-within:border-zinc-50/35 group-focus-within:border-zinc-950 focus:outline-none focus:ring-0
             transition-all font-mono cursor-pointer rounded-e-md group duration-200"
           >
-            <Link className="size-4 text-zinc-50/60 group-hover:text-emerald-500
+            <Link className="size-4 text-zinc-50/60 group-hover:text-orange-500
             transition-all duration-200"/>
           </button>
         </div>
@@ -267,7 +268,7 @@ export default function DatalistInput({
                 className={`px-4 py-3 cursor-pointer transition-colors font-mono 
                   ${
                   index === highlightedIndex
-                    ? "bg-rose-600 text-white"
+                    ? "bg-orange-600 text-white"
                     : "hover:bg-zinc-700 text-zinc-100"
                 } ${index === 0 ? "rounded-t-lg" : ""} ${
                   index === filteredRepos.length - 1 ? "rounded-b-lg" : ""
