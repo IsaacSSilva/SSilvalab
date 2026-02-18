@@ -10,6 +10,7 @@
     "format": "biome format --write"
   },
   "dependencies": {
+    "framer-motion": "^12.34.0",
     "lucide-react": "^0.544.0",
     "next": "15.5.4",
     "pixelarticons": "1.8.0",

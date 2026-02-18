@@ -1,26 +1,104 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-doto);
+  --font-mono: var(--font-manrope);
+  --font-jetbrains: var(--font-jetbrains);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ============================================
+   GRID BACKGROUND EFFECT
+   ============================================ */
+
+/* Grid básico */
+.grid-bg {
+    position: relative;
+    background-color: #000;
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ============================================
+   EFEITO PARCIAL COM DEGRADÊ
+   ============================================ */
+
+/* Fade para baixo - a grade some na parte inferior */
+.grid-bg.fade-bottom::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(to bottom, transparent 0%, #000 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Fade para cima - a grade some na parte superior */
+.grid-bg.fade-top::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(to top, transparent 0%, #000 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Fade para direita - a grade some na parte direita */
+.grid-bg.fade-right::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, transparent 0%, #000 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Fade para esquerda - a grade some na parte esquerda */
+.grid-bg.fade-left::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to left, transparent 0%, #000 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Fade central - a grade some nas bordas (efeito vinheta) */
+.grid-bg.fade-center::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, transparent 30%, #000 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Certifique-se de que o conteúdo fique acima do degradê */
+.grid-bg > * {
+    position: relative;
+    z-index: 2;
+}
+
+.scrollhiden {
+    -ms-overflow-style: none;  /* IE e Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+.scrollhiden::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
