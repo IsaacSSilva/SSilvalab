@@ -3,46 +3,66 @@
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-export default function PinterestLayout({ pins }) {
-  const scrollContainerRef = useRef(null);
-  const [_, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = useRef(null);
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ICreator {
+  name: string;
+  avatar?: string;
+}
+
+interface IPin {
+  id: number;
+  title: string;
+  description?: string;
+  height: number;
+  image?: string;
+  gradient?: string;
+  creator: ICreator;
+}
+
+interface IPinWithKey extends IPin {
+  key: string;
+  setIndex: number;
+}
+
+interface PinterestLayoutProps {
+  pins: IPin[];
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function PinterestLayout({ pins }: PinterestLayoutProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [, setIsScrolling] = useState<boolean>(false);
 
   // Valida e normaliza os pins
-  const validPins = Array.isArray(pins) ? pins : [];
+  const validPins: IPin[] = Array.isArray(pins) ? pins : [];
 
   // Cria 3 cópias do conteúdo para loop suave (memoizado)
-  const triplicatedPins = useMemo(() => {
+  const triplicatedPins = useMemo<IPinWithKey[]>(() => {
     if (validPins.length === 0) return [];
-    
+
     return [
-      ...validPins.map((pin, i) => ({ ...pin, key: `set1-${i}`, setIndex: 0 })),
-      ...validPins.map((pin, i) => ({ ...pin, key: `set2-${i}`, setIndex: 1 })),
-      ...validPins.map((pin, i) => ({ ...pin, key: `set3-${i}`, setIndex: 2 })),
+      ...validPins.map((pin, i): IPinWithKey => ({ ...pin, key: `set1-${i}`, setIndex: 0 })),
+      ...validPins.map((pin, i): IPinWithKey => ({ ...pin, key: `set2-${i}`, setIndex: 1 })),
+      ...validPins.map((pin, i): IPinWithKey => ({ ...pin, key: `set3-${i}`, setIndex: 2 })),
     ];
   }, [validPins]);
 
   // Distribui pins nas colunas (memoizado)
-  const columns = useMemo(() => {
-    const cols = [[], [], []];
-    
+  const columns = useMemo<IPinWithKey[][]>(() => {
+    const cols: IPinWithKey[][] = [[], [], []];
+
     triplicatedPins.forEach((pin, index) => {
       cols[index % 3].push(pin);
     });
-    
+
     return cols;
   }, [triplicatedPins]);
 
-  if (validPins.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-500">Nenhum pin disponível</p>
-      </div>
-    );
-  }
-
   // Gerencia o loop infinito do scroll
-  const handleScroll = useCallback(() => {
+  const handleScroll = useCallback((): void => {
     if (!scrollContainerRef.current) return;
 
     const container = scrollContainerRef.current;
@@ -92,6 +112,14 @@ export default function PinterestLayout({ pins }) {
     };
   }, []);
 
+  if (validPins.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-500">Nenhum pin disponível</p>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -119,7 +147,7 @@ export default function PinterestLayout({ pins }) {
                     ease: [0.22, 1, 0.36, 1],
                   }}
                   whileHover={{
-                    y: -8, 
+                    y: -8,
                     transition: { duration: 0.2 },
                   }}
                   className="group relative rounded-2xl overflow-hidden cursor-pointer shadow-lg shadow-black/5 hover:shadow-xl hover:shadow-black/10 transition-shadow duration-300"
@@ -127,15 +155,15 @@ export default function PinterestLayout({ pins }) {
                 >
                   {/* Image ou Gradient Background */}
                   {pin.image ? (
-                    <img 
-                      src={pin.image} 
+                    <img
+                      src={pin.image}
                       alt={pin.title}
                       className="absolute inset-0 w-full h-full object-cover"
                       loading="lazy"
                     />
                   ) : (
                     <div
-                      className={`absolute inset-0 bg-gradient-to-br ${pin.gradient}`}
+                      className={`absolute inset-0 bg-gradient-to-br ${pin.gradient ?? ""}`}
                     />
                   )}
 
@@ -154,9 +182,9 @@ export default function PinterestLayout({ pins }) {
                       </p>
                     )}
                     <div className="flex items-center gap-2">
-                      {pin.creator?.avatar ? (
-                        <img 
-                          src={pin.creator.avatar} 
+                      {pin.creator.avatar ? (
+                        <img
+                          src={pin.creator.avatar}
                           alt={pin.creator.name}
                           className="w-8 h-8 rounded-full border border-white/30"
                         />
@@ -164,7 +192,7 @@ export default function PinterestLayout({ pins }) {
                         <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm border border-white/30" />
                       )}
                       <span className="text-white/90 text-sm">
-                        {pin.creator?.name || 'Creator'}
+                        {pin.creator.name}
                       </span>
                     </div>
                   </motion.div>
